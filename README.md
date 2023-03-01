@@ -1,2 +1,12 @@
 # sync-apps-script-project
-sync Google Apps Script project with local project
+
+Syncs Google Apps Script project with local sources folder
+
+usage:
+```bash
+sync-gas.py <download/upload> <script_id> <sources_folder>
+```
+
+Requires `credentials.json` to authenticate with Google Script project.
+
+Creates `token.json` file to store authentication token. 
