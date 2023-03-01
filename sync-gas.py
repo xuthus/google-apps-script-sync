@@ -19,17 +19,15 @@ ext = {
     'HTML': 'html'
 }
 
-DEST_FOLDER = None
 
-
-def extract_sources(files):
+def extract_sources(files, dest_folder):
     for f in files:
         fn = f['name']
         ftype = f['type']  # SERVER_JS, JSON, HTML
         fsource = f['source']
         fn += "." + (ext[ftype] if ftype in ext else ftype)
         print(f"Exporting file {fn}...")
-        with open(os.path.join(DEST_FOLDER, fn), encoding="utf-8", mode="w") as f:
+        with open(os.path.join(dest_folder, fn), encoding="utf-8", mode="w") as f:
             f.write(fsource)
 
 
@@ -38,9 +36,12 @@ def main():
     Prints values from a sample spreadsheet.
     """
 
-    global DEST_FOLDER
-    SCRIPT_ID = sys.argv[1]
-    DEST_FOLDER = sys.argv[2]
+    COMMAND = sys.argv[1]
+    if COMMAND not in ['download', 'upload']:
+        raise Exception('Wrong command argument, should be one of "download" or "upload"')
+    SCRIPT_ID = sys.argv[2]
+    DEST_FOLDER = sys.argv[3]
+    
 
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
@@ -63,10 +64,12 @@ def main():
     try:
         service = build('script', 'v1', credentials=creds)
 
-        # Call the Script API
-        request = service.projects().getContent(scriptId=SCRIPT_ID)
-        response = request.execute()
-        extract_sources(response['files'])
+        if COMMAND == 'download':
+            request = service.projects().getContent(scriptId=SCRIPT_ID)
+            response = request.execute()
+            save_sources(response['files'], DEST_FOLDER)
+        if COMMAND == 'upload':
+            raise Exception('Upload command hasn\'t implemented yet')
         print("That's all, folks!")
     except HttpError as err:
         print(err)
