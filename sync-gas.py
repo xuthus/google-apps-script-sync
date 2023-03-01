@@ -76,5 +76,5 @@ def main():
 
 
 if __name__ == '__main__':
-    print("usage: sync-gas <script_id> <dest_folder>")
+    print("usage: sync-gas <download/upload> <script_id> <dest_folder>")
     main()
