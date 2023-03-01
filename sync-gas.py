@@ -20,7 +20,7 @@ ext = {
 }
 
 
-def extract_sources(files, dest_folder):
+def save_sources(files, dest_folder):
     for f in files:
         fn = f['name']
         ftype = f['type']  # SERVER_JS, JSON, HTML
