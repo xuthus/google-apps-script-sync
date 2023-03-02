@@ -9,7 +9,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-SCOPES = ['https://www.googleapis.com/auth/script.projects.readonly']
+SCOPES = ['https://www.googleapis.com/auth/script.projects']
 
 extensions = {
     'SERVER_JS': 'js',
@@ -18,8 +18,9 @@ extensions = {
 }
 
 
-def save_sources(files, local_folder):
+def save_sources(files, local_folder: str):
     for file_info in files:
+        print(file_info)
         filename = file_info['name'] + "." + (
             extensions[file_info['type']] if file_info['type'] in extensions else file_info['type'])
         print(f"Exporting file {filename}...")
@@ -27,14 +28,41 @@ def save_sources(files, local_folder):
             fw.write(file_info['source'])
 
 
+def get_file_type(filename: str) -> str:
+    if filename.lower().endswith('.js'):
+        return 'SERVER_JS'
+    if filename.lower().endswith('.json'):
+        return 'JSON'
+    if filename.lower().endswith('.html'):
+        return 'HTML'
+    raise Exception(f'Unrecognized file type: {filename}')
+
+
+def upload_sources(service: str, script_id: str, local_folder: str):
+    request = {
+        'files': []
+    }
+    for filename in os.listdir(local_folder):
+        with open(os.path.join(local_folder, filename), mode='r', encoding="utf-8") as f:
+            request['files'].append({
+                'name': os.path.splitext(filename)[0],
+                'type': get_file_type(filename),
+                'source': f.read()
+            })
+    response = service.projects().updateContent(
+        body=request,
+        scriptId=script_id).execute()
+    print(response)
+
+
 def main():
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         raise Exception('Not enough command line arguments, should be 3')
-    cmd = sys.argv[1]
+    cmd: str = sys.argv[1]
     if cmd not in ['download', 'upload']:
         raise Exception('Wrong command argument, should be one of "download" or "upload"')
-    script_id = sys.argv[2]
-    local_folder = sys.argv[3]
+    script_id: str = sys.argv[2]
+    local_folder: str = sys.argv[3]
 
     try:
         service = build('script', 'v1', credentials=get_credentials())
@@ -45,14 +73,14 @@ def main():
             save_sources(response['files'], local_folder)
 
         if cmd == 'upload':
-            raise Exception("Upload command hasn't implemented yet")
+            upload_sources(service, script_id, local_folder)
 
         print("That's all, folks!")
     except HttpError as err:
         print(err)
 
 
-def get_credentials():
+def get_credentials() -> Credentials:
     credentials = None
     if os.path.exists('token.json'):
         credentials = Credentials.from_authorized_user_file('token.json', SCOPES)
