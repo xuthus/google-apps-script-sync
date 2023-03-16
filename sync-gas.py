@@ -20,7 +20,7 @@ extensions = {
 
 def save_sources(files, local_folder: str):
     for file_info in files:
-        print(file_info)
+        #print(file_info)
         filename = file_info['name'] + "." + (
             extensions[file_info['type']] if file_info['type'] in extensions else file_info['type'])
         print(f"Exporting file {filename}...")
